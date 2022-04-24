@@ -20,7 +20,7 @@ export CKNOWARNERROR="true"
 ## 屏蔽青龙登陆成功通知，登陆失败不屏蔽
 export NOTIFY_NOLOGINSUCCESS="true"
 ## 通知底部显示
-export NOTIFY_AUTHOR="来源于：https://github.com/KingRan/JDJB"
+export NOTIFY_AUTHOR="来源于：https://github.com/KingRan/KR"
 ## 增加NOTIFY_AUTHOR_BLANK 环境变量，控制不显示底部信息
 export NOTIFY_AUTHOR_BLANK="true"
 ## 增加NOTIFY_AUTOCHECKCK为true才开启通知脚本内置的自动禁用过期ck
@@ -31,7 +31,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20220128");
+console.log("加载sendNotify，当前版本: 20220327");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -149,7 +149,18 @@ const {
     getEnvByPtPin
 } = require('./ql');
 const fs = require('fs');
-let strCKFile = '/ql/scripts/CKName_cache.json';
+let isnewql = fs.existsSync('/ql/data/config/auth.json');
+let strCKFile="";
+let strUidFile ="";
+if(isnewql){
+	strCKFile = '/ql/data/scripts/CKName_cache.json';
+	strUidFile = '/ql/data/scripts/CK_WxPusherUid.json';
+}else{
+	strCKFile = '/ql/scripts/CKName_cache.json';
+	strUidFile = '/ql/scripts/CK_WxPusherUid.json';
+}
+	
+
 let Fileexists = fs.existsSync(strCKFile);
 let TempCK = [];
 if (Fileexists) {
@@ -160,7 +171,7 @@ if (Fileexists) {
         TempCK = JSON.parse(TempCK);
     }
 }
-let strUidFile = '/ql/scripts/CK_WxPusherUid.json';
+
 let UidFileexists = fs.existsSync(strUidFile);
 let TempCKUid = [];
 if (UidFileexists) {
@@ -189,7 +200,7 @@ if (process.env.NOTIFY_SHOWNAMETYPE) {
     if (ShowRemarkType == "4")
         console.log("检测到显示备注名称，格式为: 备注");
 }
-async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By https://github.com/KingRan/JDJB',strsummary="") {
+async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By https://github.com/KingRan/KR',strsummary="") {
     console.log(`开始发送通知...`);
 
     if (process.env.NOTIFY_FILTERBYFILE) {
@@ -355,11 +366,11 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By ht
                                     text = "京东CK检测";
                                 }
                                 if (process.env.CHECKCK_ALLNOTIFY) {
-                                   strAllNotify = process.env.CHECKCK_ALLNOTIFY;
+                                    strAllNotify = process.env.CHECKCK_ALLNOTIFY;
                                     /* if (strTempNotify.length > 0) {
-                                        for (var TempNotifyl in strTempNotify) {
-                                            strAllNotify += strTempNotify[TempNotifyl] + '\n';
-                                        }
+                                    for (var TempNotifyl in strTempNotify) {
+                                    strAllNotify += strTempNotify[TempNotifyl] + '\n';
+                                    }
                                     }*/
                                     console.log(`检测到设定了温馨提示,将在推送信息中置顶显示...`);
                                     strAllNotify = `\n【✨✨✨✨温馨提示✨✨✨✨】\n` + strAllNotify;
@@ -485,7 +496,9 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By ht
         const titleIndexGp5 = notifyGroup5List.findIndex((item) => item === strTitle);
         const notifyGroup6List = process.env.NOTIFY_GROUP6_LIST ? process.env.NOTIFY_GROUP6_LIST.split('&') : [];
         const titleIndexGp6 = notifyGroup6List.findIndex((item) => item === strTitle);
-
+		const notifyGroup7List = process.env.NOTIFY_GROUP7_LIST ? process.env.NOTIFY_GROUP7_LIST.split('&') : [];
+        const titleIndexGp7 = notifyGroup7List.findIndex((item) => item === strTitle);
+		
         if (titleIndex2 !== -1) {
             console.log(`${strTitle} 在群组2推送名单中，初始化群组推送`);
             UseGroupNotify = 2;
@@ -505,6 +518,10 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By ht
         if (titleIndexGp6 !== -1) {
             console.log(`${strTitle} 在群组6推送名单中，初始化群组推送`);
             UseGroupNotify = 6;
+        }
+		if (titleIndexGp7 !== -1) {
+            console.log(`${strTitle} 在群组7推送名单中，初始化群组推送`);
+            UseGroupNotify = 7;
         }
         if (process.env.NOTIFY_CUSTOMNOTIFY) {
             strCustom = process.env.NOTIFY_CUSTOMNOTIFY;
@@ -541,7 +558,10 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By ht
                             console.log("自定义设定强制使用组6配置通知...");
                             UseGroupNotify = 6;
                         }
-
+						if (strCustomTempArr[1] == "组7") {
+                            console.log("自定义设定强制使用组6配置通知...");
+                            UseGroupNotify = 7;
+                        }
                         if (strCustomTempArr.length > 2) {
                             console.log("关闭所有通知变量...");
                             Use_serverNotify = false;
@@ -1247,6 +1267,110 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By ht
                 GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY6;
             }
             break;
+			
+		case 7:
+            //==========================第七套环境变量赋值=========================
+
+            if (process.env.GOBOT_URL7 && Use_gobotNotify) {
+                GOBOT_URL = process.env.GOBOT_URL7;
+            }
+            if (process.env.GOBOT_TOKEN7 && Use_gobotNotify) {
+                GOBOT_TOKEN = process.env.GOBOT_TOKEN7;
+            }
+            if (process.env.GOBOT_QQ7 && Use_gobotNotify) {
+                GOBOT_QQ = process.env.GOBOT_QQ7;
+            }
+
+            if (process.env.PUSH_KEY7 && Use_serverNotify) {
+                SCKEY = process.env.PUSH_KEY7;
+            }
+
+            if (process.env.WP_APP_TOKEN7 && Use_WxPusher) {
+                WP_APP_TOKEN = process.env.WP_APP_TOKEN7;
+            }
+
+            if (process.env.WP_TOPICIDS7 && Use_WxPusher) {
+                WP_TOPICIDS = process.env.WP_TOPICIDS7;
+            }
+
+            if (process.env.WP_UIDS7 && Use_WxPusher) {
+                WP_UIDS = process.env.WP_UIDS7;
+            }
+
+            if (process.env.WP_URL7 && Use_WxPusher) {
+                WP_URL = process.env.WP_URL7;
+            }
+            if (process.env.BARK_PUSH7 && Use_BarkNotify) {
+                if (process.env.BARK_PUSH7.indexOf('https') > -1 || process.env.BARK_PUSH7.indexOf('http') > -1) {
+                    //兼容BARK自建用户
+                    BARK_PUSH = process.env.BARK_PUSH7;
+                } else {
+                    BARK_PUSH = `https://api.day.app/${process.env.BARK_PUSH7}`;
+                }
+                if (process.env.BARK_SOUND7) {
+                    BARK_SOUND = process.env.BARK_SOUND7;
+                }
+                if (process.env.BARK_GROUP7) {
+                    BARK_GROUP = process.env.BARK_GROUP7;
+                }
+            }
+            if (process.env.TG_BOT_TOKEN7 && Use_tgBotNotify) {
+                TG_BOT_TOKEN = process.env.TG_BOT_TOKEN7;
+            }
+            if (process.env.TG_USER_ID7 && Use_tgBotNotify) {
+                TG_USER_ID = process.env.TG_USER_ID7;
+            }
+            if (process.env.TG_PROXY_AUTH7 && Use_tgBotNotify)
+                TG_PROXY_AUTH = process.env.TG_PROXY_AUTH7;
+            if (process.env.TG_PROXY_HOST7 && Use_tgBotNotify)
+                TG_PROXY_HOST = process.env.TG_PROXY_HOST7;
+            if (process.env.TG_PROXY_PORT7 && Use_tgBotNotify)
+                TG_PROXY_PORT = process.env.TG_PROXY_PORT7;
+            if (process.env.TG_API_HOST7 && Use_tgBotNotify)
+                TG_API_HOST = process.env.TG_API_HOST7;
+
+            if (process.env.DD_BOT_TOKEN7 && Use_ddBotNotify) {
+                DD_BOT_TOKEN = process.env.DD_BOT_TOKEN7;
+                if (process.env.DD_BOT_SECRET7) {
+                    DD_BOT_SECRET = process.env.DD_BOT_SECRET7;
+                }
+            }
+
+            if (process.env.QYWX_KEY7 && Use_qywxBotNotify) {
+                QYWX_KEY = process.env.QYWX_KEY7;
+            }
+
+            if (process.env.QYWX_AM7 && Use_qywxamNotify) {
+                QYWX_AM = process.env.QYWX_AM7;
+            }
+
+            if (process.env.IGOT_PUSH_KEY7 && Use_iGotNotify) {
+                IGOT_PUSH_KEY = process.env.IGOT_PUSH_KEY7;
+            }
+
+            if (process.env.PUSH_PLUS_TOKEN7 && Use_pushPlusNotify) {
+                PUSH_PLUS_TOKEN = process.env.PUSH_PLUS_TOKEN7;
+            }
+            if (process.env.PUSH_PLUS_USER7 && Use_pushPlusNotify) {
+                PUSH_PLUS_USER = process.env.PUSH_PLUS_USER7;
+            }
+
+            if (process.env.PUSH_PLUS_TOKEN_hxtrip7 && Use_pushPlushxtripNotify) {
+                PUSH_PLUS_TOKEN_hxtrip = process.env.PUSH_PLUS_TOKEN_hxtrip7;
+            }
+            if (process.env.PUSH_PLUS_USER_hxtrip7 && Use_pushPlushxtripNotify) {
+                PUSH_PLUS_USER_hxtrip = process.env.PUSH_PLUS_USER_hxtrip7;
+            }
+            if (process.env.GOTIFY_URL7) {
+                GOTIFY_URL = process.env.GOTIFY_URL7;
+            }
+            if (process.env.GOTIFY_TOKEN7) {
+                GOTIFY_TOKEN = process.env.GOTIFY_TOKEN7;
+            }
+            if (process.env.GOTIFY_PRIORITY7) {
+                GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY7;
+            }
+            break;
         }
 
         //检查是否在不使用Remark进行名称替换的名单
@@ -1342,11 +1466,13 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By ht
                         try {
                             //额外处理1，nickName包含星号
                             $.nickName = $.nickName.replace(new RegExp(`[*]`, 'gm'), "[*]");
-
                             text = text.replace(new RegExp(`${$.UserName}|${$.nickName}`, 'gm'), $.Remark);
-
                             if (text == "京东资产变动" || text == "京东资产变动#2" || text == "京东资产变动#3" || text == "京东资产变动#4") {
-                                var Tempinfo = getQLinfo(cookie, envs[i].created, envs[i].timestamp, envs[i].remarks);
+                                var Tempinfo = "";
+								if(envs[i].created)
+									Tempinfo=getQLinfo(cookie, envs[i].created, envs[i].timestamp, envs[i].remarks);
+								else
+									Tempinfo=getQLinfo(cookie, envs[i].createdAt, envs[i].timestamp, envs[i].remarks);
                                 if (Tempinfo) {
                                     $.Remark += Tempinfo;
                                 }
@@ -1488,9 +1614,9 @@ function getuuid(strRemark, PtPin) {
 
 function getQLinfo(strCK, intcreated, strTimestamp, strRemark) {
     var strCheckCK = strCK.match(/pt_key=([^; ]+)(?=;?)/) && strCK.match(/pt_key=([^; ]+)(?=;?)/)[1];
-	var strPtPin = decodeURIComponent(strCK.match(/pt_pin=([^; ]+)(?=;?)/) && strCK.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
+    var strPtPin = decodeURIComponent(strCK.match(/pt_pin=([^; ]+)(?=;?)/) && strCK.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
     var strReturn = "";
-    if (strCheckCK.substring(0, 4) == "AAJh") {
+    if (strCheckCK.substring(0, 3) == "AAJ") {
         var DateCreated = new Date(intcreated);
         var DateTimestamp = new Date(strTimestamp);
         var DateToday = new Date();
@@ -1600,7 +1726,12 @@ async function sendNotifybyWxPucher(text, desp, PtPin, author = '\n\n本通知 B
                             //额外处理1，nickName包含星号
                             $.nickName = $.nickName.replace(new RegExp(`[*]`, 'gm'), "[*]");
 
-                            var Tempinfo = getQLinfo(cookie, tempEnv.created, tempEnv.timestamp, tempEnv.remarks);
+                            var Tempinfo = "";
+							if(tempEnv.created)
+								Tempinfo=getQLinfo(cookie, tempEnv.created, tempEnv.timestamp, tempEnv.remarks);
+							else
+								Tempinfo=getQLinfo(cookie, tempEnv.createdAt, tempEnv.timestamp, tempEnv.remarks);
+							
                             if (Tempinfo) {
                                 Tempinfo = $.nickName + Tempinfo;
                                 desp = desp.replace(new RegExp(`${$.UserName}|${$.nickName}`, 'gm'), Tempinfo);
@@ -1876,57 +2007,58 @@ function BarkNotify(text, desp, params = {}) {
 }
 
 function tgBotNotify(text, desp) {
-    return new Promise((resolve) => {
-        if (TG_BOT_TOKEN && TG_USER_ID) {
-            const options = {
-                url: `https://${TG_API_HOST}/bot${TG_BOT_TOKEN}/sendMessage`,
-                body: `chat_id=${TG_USER_ID}&text=${text}\n\n${desp}&disable_web_page_preview=true`,
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                timeout,
-            };
-            if (TG_PROXY_HOST && TG_PROXY_PORT) {
-                const tunnel = require('tunnel');
-                const agent = {
-                    https: tunnel.httpsOverHttp({
-                        proxy: {
-                            host: TG_PROXY_HOST,
-                            port: TG_PROXY_PORT * 1,
-                            proxyAuth: TG_PROXY_AUTH,
-                        },
-                    }),
-                };
-                Object.assign(options, {
-                    agent
-                });
+  return new Promise(resolve => {
+    if (TG_BOT_TOKEN && TG_USER_ID) {
+      const options = {
+        url: `https://${TG_API_HOST}/bot${TG_BOT_TOKEN}/sendMessage`,
+        json: {
+            chat_id: `${TG_USER_ID}`,
+            text: `${text}\n\n${desp}`,
+            disable_web_page_preview:true,
+          },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout
+      }
+      if (TG_PROXY_HOST && TG_PROXY_PORT) {
+        const tunnel = require("tunnel");
+        const agent = {
+          https: tunnel.httpsOverHttp({
+            proxy: {
+              host: TG_PROXY_HOST,
+              port: TG_PROXY_PORT * 1,
+              proxyAuth: TG_PROXY_AUTH
             }
-            $.post(options, (err, resp, data) => {
-                try {
-                    if (err) {
-                        console.log('telegram发送通知消息失败！！\n');
-                        console.log(err);
-                    } else {
-                        data = JSON.parse(data);
-                        if (data.ok) {
-                            console.log('Telegram发送通知消息成功🎉。\n');
-                        } else if (data.error_code === 400) {
-                            console.log('请主动给bot发送一条消息并检查接收用户ID是否正确。\n');
-                        } else if (data.error_code === 401) {
-                            console.log('Telegram bot token 填写错误。\n');
-                        }
-                    }
-                } catch (e) {
-                    $.logErr(e, resp);
-                }
-                finally {
-                    resolve(data);
-                }
-            });
-        } else {
-            resolve();
+          })
         }
-    });
+        Object.assign(options, {agent})
+      }
+      $.post(options, (err, resp, data) => {
+        try {
+          if (err) {
+            console.log('telegram发送通知消息失败！！\n')
+            console.log(err);
+          } else {
+            data = JSON.parse(data);
+            if (data.ok) {
+              console.log('Telegram发送通知消息成功�。\n')
+            } else if (data.error_code === 400) {
+              console.log('请主动给bot发送一条消息并检查接收用户ID是否正确。\n')
+            } else if (data.error_code === 401) {
+              console.log('Telegram bot token 填写错误。\n')
+            }
+          }
+        } catch (e) {
+          $.logErr(e, resp);
+        } finally {
+          resolve(data);
+        }
+      })
+    } else {     
+      resolve()
+    }
+  })
 }
 
 function ddBotNotify(text, desp) {
@@ -2072,7 +2204,7 @@ function ChangeUserId(desp) {
     }
 }
 
-function qywxamNotify(text, desp, strsummary="") {
+function qywxamNotify(text, desp, strsummary = "") {
     return new Promise((resolve) => {
         if (QYWX_AM) {
             const QYWX_AM_AY = QYWX_AM.split(',');
@@ -2090,7 +2222,7 @@ function qywxamNotify(text, desp, strsummary="") {
             $.post(options_accesstoken, (err, resp, data) => {
                 html = desp.replace(/\n/g, '<br/>');
                 html = `<font size="3">${html}</font>`;
-                if (strsummary=="") {
+                if (strsummary == "") {
                     strsummary = desp;
                 }
                 var json = JSON.parse(data);
@@ -2335,7 +2467,7 @@ function wxpusherNotifyByOne(text, desp, strsummary = "") {
             }
 
             if (strsummary.length > 96) {
-                strsummary = strsummary.substring(0, 95)+"...";
+                strsummary = strsummary.substring(0, 95) + "...";
             }
             let uids = [];
             for (let i of WP_UIDS_ONE.split(";")) {

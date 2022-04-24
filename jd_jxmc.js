@@ -33,7 +33,7 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 $.inviteCodeList = [];
 let cookiesArr = [];
 let UA, token, UAInfo = {}
-$.appId = 10028;
+$.appId = "00df8";
 function oc(fn, defaultVal) {//optioanl chaining
   try {
     return fn()
@@ -110,7 +110,7 @@ if ($.isNode()) {
     await pasture();
     await $.wait(2000);
   }
-  $.res = await getAuthorShareCode('https://gitee.com/KingRan521/JD-Scripts/raw/master/shareCodes/jxmc.json')
+  $.res = await getAuthorShareCode('https://cdn.jsdelivr.net/gh/KingRan/shareCodes@master/jxmc.json')
   await shareCodesFormat()
   for (let i = 0; i < cookiesArr.length; i++) {
     $.cookie = cookiesArr[i];
